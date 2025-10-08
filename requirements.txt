@@ -1,0 +1,12 @@
+phidata>=2.5.0
+openai>=1.45.0
+yfinance>=0.2.44
+duckduckgo-search>=6.2.10
+python-dotenv>=1.0.1
+pandas>=2.2.2
+numpy>=2.0.0
+requests>=2.32.3
+rich>=13.9.5
+fastapi>=0.115.8
+python-multipart>=0.0.20
+uvicorn>=0.34.0
