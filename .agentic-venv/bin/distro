@@ -1,0 +1,6 @@
+#!/private/tmp/agentic_execution_runs/8f0a68c1-09fd-4934-806e-d4fbf42a6dd0/.agentic-venv/bin/python3.11
+import sys
+from distro.distro import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())
