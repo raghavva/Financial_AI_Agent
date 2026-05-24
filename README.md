@@ -8,6 +8,7 @@ A multi-agent financial analysis system that combines web search and financial d
 - **Financial Data Agent**: Retrieves 1-year price history, analyst recommendations, and company fundamentals using yfinance
 - **Interactive Terminal Interface**: Prompts user for ticker symbol and optional custom analysis topic
 - **Web Playground**: Optional web interface for testing agents individually
+- **Structured JSON Output Mode**: Supports both markdown and JSON output formats for easier integration into APIs and downstream UI systems
 
 ## Setup
 
@@ -36,7 +37,8 @@ python financial_agent.py
 ```
 - Enter ticker symbol when prompted (e.g., AAPL, MSFT, NVDA)
 - Optionally provide a custom analysis topic or press Enter for default
-- View comprehensive analysis with sources and data tables
+- Choose output format (markdown or json) when prompted
+- View comprehensive analysis with sources and data in the selected format
 
 ### Web Playground Mode
 ```bash
@@ -44,7 +46,17 @@ python playground.py
 ```
 - Access web interface at `http://localhost:8000`
 - Test individual agents or run custom queries
-- Useful for development and debugging
+- Agents available in markdown and JSON output variants
+- Useful for development, debugging, and API integration testing
+
+## JSON Output Format
+
+When choosing JSON output mode, the system outputs a structured JSON object including keys like:
+
+- `summary`: The comprehensive analysis text
+- `metadata`: Information about the output format and source
+
+This enables programmatic consumption and integration of financial insight data.
 
 ## Example Output
 

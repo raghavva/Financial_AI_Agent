@@ -1,5 +1,5 @@
 from phi.playground import Playground, serve_playground_app
-from financial_agent import financial_agent, web_search_agent
+from financial_agent import financial_agent as base_financial_agent, web_search_agent as base_web_search_agent, OutputFormat, ExtendedAgent
 from phi.agent import Agent
 from phi.model.openai import OpenAIChat
 from phi.tools.duckduckgo import DuckDuckGo
@@ -8,41 +8,37 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-web_search_agent = Agent(
-        name="Web Search Agent",
-        role="Search the web for recent financial news and reports; include sources.",
-        model=OpenAIChat(id="gpt-4o-mini"),
-        tools=[DuckDuckGo()],
-        instructions=[
-            "Search broadly across reputable sources from the past 1 year(news, filings, analyst notes).",
-            "Always cite sources with titles and URLs.",
-        ],
-        show_tool_calls=True,
-        markdown=True,
-    )
 
-financial_agent = Agent(
-    name="Financial Data Agent",
-        role="Retrieve and analyze 1-year price data, key stats, and analyst recs.",
-        model=OpenAIChat(id="gpt-4o-mini"),
-        tools=[
-            YFinanceTools(
-                stock_price=True,
-                analyst_recommendations=True,
-                company_news=True,
-                stock_fundamentals=True,
-            )
-        ],
-        instructions=[
-            "Fetch 1-year historical OHLC and compute drawdown, volatility, and momentum.",
-            "Summarize analyst recommendations and company info concisely in tables.",
-        ],
-        show_tool_calls=True,
-        markdown=True,
-)
+# Provide ability to select output format here
+# For demonstration, default to markdown but allow JSON via playground config or environment
+
+# For playground use, we expose JSON output format as option by wrapping agents
 
 
-app = Playground(agents=[financial_agent, web_search_agent]).get_app()
+class PlaygroundAgentWrapper(ExtendedAgent):
+    def __init__(self, base_agent: ExtendedAgent, output_format: str):
+        super().__init__(
+            name=base_agent.name,
+            role=base_agent.role,
+            model=base_agent.model,
+            tools=base_agent.tools,
+            instructions=base_agent.instructions,
+            show_tool_calls=base_agent.show_tool_calls,
+            output_format=output_format
+        )
+
+
+# Setup agents for playground: supporting markdown and json output
+
+financial_agent_markdown = PlaygroundAgentWrapper(base_financial_agent, OutputFormat.MARKDOWN)
+financial_agent_json = PlaygroundAgentWrapper(base_financial_agent, OutputFormat.JSON)
+
+web_search_agent_markdown = PlaygroundAgentWrapper(base_web_search_agent, OutputFormat.MARKDOWN)
+web_search_agent_json = PlaygroundAgentWrapper(base_web_search_agent, OutputFormat.JSON)
+
+# For playground demonstration we choose default as markdown
+app = Playground(agents=[financial_agent_markdown, web_search_agent_markdown, financial_agent_json, web_search_agent_json]).get_app()
+
 
 if __name__ == "__main__":
     serve_playground_app("playground:app", reload=True)
