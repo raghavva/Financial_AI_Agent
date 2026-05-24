@@ -51,6 +51,9 @@ multi_agent = Agent(
 )
 
 def build_query(ticker: str, topic: str | None = None) -> str:
+    # Return empty string if topic is explicitly empty string
+    if topic == "":
+        return ""
     base = f"Summarize analyst recommendations and share the latest news for {ticker}."
     return topic if topic else base
 
