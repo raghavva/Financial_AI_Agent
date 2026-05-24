@@ -3,8 +3,12 @@ from phi.model.openai import OpenAIChat
 from phi.tools.duckduckgo import DuckDuckGo
 from phi.tools.yfinance import YFinanceTools
 from dotenv import load_dotenv
+from rich.console import Console
+import sys
 
 load_dotenv()
+
+console = Console()
 
 web_search_agent = Agent(
         name="Web Search Agent",
@@ -50,17 +54,53 @@ multi_agent = Agent(
     ],
 )
 
+
 def build_query(ticker: str, topic: str | None = None) -> str:
     base = f"Summarize analyst recommendations and share the latest news for {ticker}."
     return topic if topic else base
 
+
+def is_valid_ticker(ticker: str) -> bool:
+    """Validate ticker by attempting to fetch basic info using YFinanceTools without side effects."""
+    yf_tool = YFinanceTools()
+    try:
+        info = yf_tool.get_company_info(ticker)
+        # get_company_info returns dict with keys if valid, empty or error if invalid
+        if info and isinstance(info, dict) and len(info) > 0:
+            return True
+        return False
+    except Exception:
+        # Treat exceptions here as invalid ticker
+        return False
+
+
 def main():
     load_dotenv()
     ticker = input("Enter ticker (e.g., AAPL): ").strip().upper()
+    if not ticker:
+        console.print(":cross_mark: [bold red]Error:[/bold red] Ticker input cannot be empty. Please provide a valid ticker symbol.")
+        return
+
+    if not is_valid_ticker(ticker):
+        console.print(f":cross_mark: [bold red]Error:[/bold red] The ticker symbol '{ticker}' is invalid or not recognized. Please check and try again.")
+        return
+
     raw = input("Optional topic (press Enter to use default): ").strip()
     topic = raw if raw else None
     query = build_query(ticker, topic)
-    multi_agent.print_response(query, stream=True)
+
+    try:
+        multi_agent.print_response(query, stream=True)
+    except Exception as e:
+        err_msg = str(e)
+        # Determine if error is likely from yfinance or duckduckgo tools
+        if "yfinance" in err_msg.lower():
+            console.print(":cross_mark: [bold red]Error:[/bold red] Failed to retrieve financial data from yfinance. Please check your internet connection and ticker symbol.")
+        elif "duckduckgo" in err_msg.lower() or "duckduckgo_search" in err_msg.lower():
+            console.print(":cross_mark: [bold red]Error:[/bold red] Web search service failed. Please try again later.")
+        else:
+            console.print(f":cross_mark: [bold red]Error:[/bold red] An unexpected error occurred: {err_msg}")
+
 
 if __name__ == "__main__":
     main()
